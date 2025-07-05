@@ -1,0 +1,32 @@
+{
+  "name": "minidoc",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Markdown documentation generation from JS Doc. Fast.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown && clear && node ./dist/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "tsdown": "latest"
+  },
+  "dependencies": {
+    "comment-parser": "^1.4.1",
+    "oxc-parser": "^0.75.1",
+    "oxc-walker": "^0.3.0",
+    "rolldown": "^1.0.0-beta.23",
+    "unconfig": "^7.3.2"
+  }
+}
