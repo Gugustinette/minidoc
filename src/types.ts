@@ -1,3 +1,5 @@
+import { Node } from "oxc-parser";
+
 export interface MinidocConfig {
   /** Input files or directories to process */
   input: string | string[];
@@ -35,4 +37,10 @@ export interface CliOptions {
   output?: string;
   watch?: boolean;
   verbose?: boolean;
+}
+
+export interface DocumentedNode {
+  node: Node;
+  jsdoc: any;
+  file: string;
 }

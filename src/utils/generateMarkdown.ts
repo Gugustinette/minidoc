@@ -1,0 +1,48 @@
+import { DocumentedNode } from "../types";
+import { generateEntryMarkdown } from "./generateEntryMarkdown";
+
+/**
+ * Generate Markdown documentation from collected JSDoc entries
+ */
+export function generateMarkdown(documentedNodes: DocumentedNode[], options = {}): string {
+  const { title = 'API Documentation', groupByType = true }: any = options;
+  
+  let markdown = `# ${title}\n\n`;
+  
+  if (documentedNodes.length === 0) {
+    markdown += '_No documented functions or classes found._\n';
+    return markdown;
+  }
+  
+  // Group by type if requested
+  if (groupByType) {
+    const grouped = documentedNodes.reduce((acc, entry) => {
+      const type = entry.node.type;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(entry);
+      return acc;
+    }, {});
+    
+    const typeHeaders = {
+      'ClassDeclaration': '## Classes',
+      'FunctionDeclaration': '## Functions', 
+      'FunctionExpression': '## Functions',
+    };
+    
+    for (const type of Object.keys(grouped)) {
+      if (grouped[type]) {
+        markdown += `${typeHeaders[type] || `## ${type}s`}\n\n`;
+        for (const entry of grouped[type]) {
+          markdown += generateEntryMarkdown(entry);
+        }
+      }
+    }
+  } else {
+    // Generate entries in order
+    for (const entry of documentedNodes) {
+      markdown += generateEntryMarkdown(entry);
+    }
+  }
+  
+  return markdown;
+}
