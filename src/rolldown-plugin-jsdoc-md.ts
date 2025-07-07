@@ -29,69 +29,72 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
       console.log('JSDoc plugin: Starting documentation collection...');
     },
     
-    transform(this, code, id) {
-      // Skip if file doesn't match include/exclude patterns
-      if (id.match(exclude) || !id.match(include)) {
-        return null;
-      }
-      
-      try {
-        // Parse the source code
-        const parseResult = parseSync(id, code, {
-          sourceType: 'module',
-          range: true
-        });
-
-        // Filter JSDoc comments
-        const jsdocComments = parseResult.comments
-          .filter(comment => 
-            comment.type === 'Block'
-          );
-
-        if (jsdocComments.length === 0) {
-          return null;
+    transform: {
+      filter: {
+        id: {
+          include,
+          exclude
         }
+      },
+      handler (this, code, id) {
+        try {
+          // Parse the source code
+          const parseResult = parseSync(id, code, {
+            sourceType: 'module',
+            range: true
+          });
 
-        walk(parseResult.program, {
-          enter: (untypedNode) => {
-            // Check if the node is a function, class, or variable declaration
-            if (!['MethodDefinition', 'PropertyDefinition'].includes(untypedNode.type)) {
-              return;
-            }
+          // Filter JSDoc comments
+          const jsdocComments = parseResult.comments
+            .filter(comment => 
+              comment.type === 'Block'
+            );
 
-            // Re-cast to filtered types
-            const node: MethodDefinition | PropertyDefinition = untypedNode as MethodDefinition | PropertyDefinition;
-            const nodeKey: IdentifierName = node.key as IdentifierName;
+          if (jsdocComments.length === 0) {
+            return null;
+          }
 
-            // Find corresponding JSDoc comment
-            const precedingJsdocComment = findPrecedingJsdocComment(node, jsdocComments);
+          walk(parseResult.program, {
+            enter: (untypedNode) => {
+              // Check if the node is a function, class, or variable declaration
+              if (!['MethodDefinition', 'PropertyDefinition'].includes(untypedNode.type)) {
+                return;
+              }
 
-            if (precedingJsdocComment) {
-              const jsdoc = parseJsdocComment(precedingJsdocComment.value);
-              documentedNodes.push({
-                id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
-                name: nodeKey.name,
-                file: id,
-                node,
-                jsdoc,
-              });
+              // Re-cast to filtered types
+              const node: MethodDefinition | PropertyDefinition = untypedNode as MethodDefinition | PropertyDefinition;
+              const nodeKey: IdentifierName = node.key as IdentifierName;
 
-              // Remove the comment from the list to avoid duplicates
-              const index = jsdocComments.indexOf(precedingJsdocComment);
-              if (index !== -1) {
-                jsdocComments.splice(index, 1);
+              // Find corresponding JSDoc comment
+              const precedingJsdocComment = findPrecedingJsdocComment(node, jsdocComments);
+
+              if (precedingJsdocComment) {
+                const jsdoc = parseJsdocComment(precedingJsdocComment.value);
+                documentedNodes.push({
+                  id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
+                  name: nodeKey.name,
+                  file: id,
+                  node,
+                  jsdoc,
+                });
+
+                // Remove the comment from the list to avoid duplicates
+                const index = jsdocComments.indexOf(precedingJsdocComment);
+                if (index !== -1) {
+                  jsdocComments.splice(index, 1);
+                }
               }
             }
-          }
-        });
+          });
 
-        if (documentedNodes.length > 0) {
-          console.log(`JSDoc plugin: Found ${documentedNodes.length} documented nodes in ${path.basename(id)}`);
+          if (documentedNodes.length > 0) {
+            console.log(`JSDoc plugin: Found ${documentedNodes.length} documented nodes in ${path.basename(id)}`);
+          }
+        } catch (error) {
+          console.warn(`JSDoc plugin: Failed to parse ${id}:`, error.message);
         }
-      } catch (error) {
-        console.warn(`JSDoc plugin: Failed to parse ${id}:`, error.message);
-      }
-      return null;
+        return null;
+      },
     },
     
     generateBundle() {
