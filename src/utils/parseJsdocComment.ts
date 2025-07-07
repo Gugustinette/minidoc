@@ -1,12 +1,9 @@
-interface JSDocSection {
-  description: string;
-  tags: Record<string, string[]>;
-}
+import { Jsdoc } from "../types";
 
 /**
  * Utility to parse JSDoc comments into structured data
  */
-export function parseJsdocComment(commentText: string): JSDocSection {
+export function parseJsdocComment(commentText: string): Jsdoc {
   // Remove every ' * ' from the start of each line
   const cleanedText = commentText
     .split('\n')

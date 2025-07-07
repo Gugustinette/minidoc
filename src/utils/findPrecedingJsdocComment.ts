@@ -1,7 +1,7 @@
 import { Comment, Node } from 'oxc-parser';
 
 /**
- * Find JSDoc comment that precedes a given AST node
+ * Find JSDoc comment associated to a given AST node.
  */
 export function findPrecedingJsdocComment(node: Node, comments: Comment[]): Comment | null {  
   // Find the last JSDoc comment before this node

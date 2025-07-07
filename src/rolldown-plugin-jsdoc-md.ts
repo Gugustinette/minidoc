@@ -1,4 +1,4 @@
-import { parseSync } from 'oxc-parser';
+import { Class, Function, IdentifierName, MethodDefinition, parseSync, PropertyDefinition, PropertyKey, VariableDeclaration } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -45,8 +45,7 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
         // Filter JSDoc comments
         const jsdocComments = parseResult.comments
           .filter(comment => 
-            comment.type === 'Block' && 
-            comment.value.startsWith('*')
+            comment.type === 'Block'
           );
 
         if (jsdocComments.length === 0) {
@@ -54,25 +53,31 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
         }
 
         walk(parseResult.program, {
-          enter: (node) => {
+          enter: (untypedNode) => {
             // Check if the node is a function, class, or variable declaration
-            if (!['FunctionDeclaration', 'FunctionExpression', 'ClassDeclaration', 'VariableDeclaration'].includes(node.type)) {
+            if (!['MethodDefinition', 'PropertyDefinition'].includes(untypedNode.type)) {
               return;
             }
 
-            // Find corresponding JSDoc comment
-            const jsdocComment = findPrecedingJsdocComment(node, jsdocComments);
+            // Re-cast to filtered types
+            const node: MethodDefinition | PropertyDefinition = untypedNode as MethodDefinition | PropertyDefinition;
+            const nodeKey: IdentifierName = node.key as IdentifierName;
 
-            if (jsdocComment) {
-              const jsdoc = parseJsdocComment(jsdocComment.value);
-              documentedNodes.push({ 
-                node, 
+            // Find corresponding JSDoc comment
+            const precedingJsdocComment = findPrecedingJsdocComment(node, jsdocComments);
+
+            if (precedingJsdocComment) {
+              const jsdoc = parseJsdocComment(precedingJsdocComment.value);
+              documentedNodes.push({
+                id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
+                name: nodeKey.name,
+                file: id,
+                node,
                 jsdoc,
-                file: id 
               });
 
               // Remove the comment from the list to avoid duplicates
-              const index = jsdocComments.indexOf(jsdocComment);
+              const index = jsdocComments.indexOf(precedingJsdocComment);
               if (index !== -1) {
                 jsdocComments.splice(index, 1);
               }

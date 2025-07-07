@@ -39,8 +39,15 @@ export interface CliOptions {
   verbose?: boolean;
 }
 
+export interface Jsdoc {
+  description: string;
+  tags: Record<string, string[]>;
+}
+
 export interface DocumentedNode {
-  node: Node;
-  jsdoc: any;
+  id: string;
+  name: string;
   file: string;
+  node: Node;
+  jsdoc: Jsdoc;
 }

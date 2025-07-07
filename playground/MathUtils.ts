@@ -1,3 +1,5 @@
+
+// File: src/utils/findPrecedingJsdocComment.ts
 /**
  * Calculates the sum of two numbers
  * @param a - The first number

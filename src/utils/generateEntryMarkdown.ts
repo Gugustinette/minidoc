@@ -5,9 +5,8 @@ import { DocumentedNode } from "../types";
  * Generate Markdown for a single documentation entry
  */
 export function generateEntryMarkdown(entry: DocumentedNode): string {
-  const { node, jsdoc, file } = entry;
-  const nodeId = `${node.type}-${node.start}-${node.end}`;
-  let markdown = `### ${node.type} - ${nodeId || 'Unnamed'}\n\n`;
+  const { node, name, file, jsdoc } = entry;
+  let markdown = `### ${node.type} - ${name || 'Unnamed'}\n\n`;
   
   // Add file reference
   markdown += `*File: [${path.basename(file)}](${file})*\n\n`;
