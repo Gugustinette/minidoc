@@ -1,4 +1,4 @@
-import { Class, Function, IdentifierName, MethodDefinition, parseSync, PropertyDefinition, PropertyKey, VariableDeclaration } from 'oxc-parser';
+import { IdentifierName, MethodDefinition, parseSync, PropertyDefinition } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
