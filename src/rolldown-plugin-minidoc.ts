@@ -1,12 +1,17 @@
-import { IdentifierName, MethodDefinition, parseSync, PropertyDefinition } from 'oxc-parser';
-import { walk } from 'oxc-walker';
-import { writeFileSync, mkdirSync } from 'node:fs';
-import path from 'node:path';
-import { RolldownPlugin, TransformResult } from 'rolldown';
-import { DocumentedNode, Options } from './types';
-import { findPrecedingJsdocComment } from './utils/findPrecedingJsdocComment';
-import { parseJsdocComment } from './utils/parseJsdocComment';
-import { generateMarkdown } from './utils/generateMarkdown';
+import { mkdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import {
+	type IdentifierName,
+	type MethodDefinition,
+	type PropertyDefinition,
+	parseSync,
+} from "oxc-parser";
+import { walk } from "oxc-walker";
+import type { RolldownPlugin, TransformResult } from "rolldown";
+import type { DocumentedNode, Options } from "./types";
+import { findPrecedingJsdocComment } from "./utils/findPrecedingJsdocComment";
+import { generateMarkdown } from "./utils/generateMarkdown";
+import { parseJsdocComment } from "./utils/parseJsdocComment";
 
 const documentedNodes: DocumentedNode[] = [];
 
@@ -14,99 +19,114 @@ const documentedNodes: DocumentedNode[] = [];
  * Main Rolldown plugin function
  */
 export default function minidoc(options = {}): RolldownPlugin {
-  const {}: Options = options;
+	// biome-ignore lint/correctness/noEmptyPattern: We allow empty options for flexibility
+	const {}: Options = options;
 
-  return {
-    name: 'minidoc',
+	return {
+		name: "minidoc",
 
-    buildStart() {
-      console.log('minidoc: Starting documentation collection...');
-    },
-    
-    transform: {
-      handler (this, code: string, id: string): TransformResult {
-        try {
-          // Parse the source code
-          const parseResult = parseSync(id, code, {
-            sourceType: 'module',
-            range: true
-          });
+		buildStart() {
+			console.log("minidoc: Starting documentation collection...");
+		},
 
-          // Filter JSDoc comments
-          const jsdocComments = parseResult.comments
-            .filter(comment => 
-              comment.type === 'Block'
-            );
+		transform: {
+			handler(this, code: string, id: string): TransformResult {
+				try {
+					// Parse the source code
+					const parseResult = parseSync(id, code, {
+						sourceType: "module",
+						range: true,
+					});
 
-          if (jsdocComments.length === 0) {
-            return null;
-          }
+					// Filter JSDoc comments
+					const jsdocComments = parseResult.comments.filter(
+						(comment) => comment.type === "Block",
+					);
 
-          walk(parseResult.program, {
-            enter: (untypedNode) => {
-              // Check if the node is a function, class, or variable declaration
-              if (!['MethodDefinition', 'PropertyDefinition'].includes(untypedNode.type)) {
-                return null;
-              }
+					if (jsdocComments.length === 0) {
+						return null;
+					}
 
-              // Re-cast to filtered types
-              const node: MethodDefinition | PropertyDefinition = untypedNode as MethodDefinition | PropertyDefinition;
-              const nodeKey: IdentifierName = node.key as IdentifierName;
+					walk(parseResult.program, {
+						enter: (untypedNode) => {
+							// Check if the node is a function, class, or variable declaration
+							if (
+								!["MethodDefinition", "PropertyDefinition"].includes(
+									untypedNode.type,
+								)
+							) {
+								return null;
+							}
 
-              // Find corresponding JSDoc comment
-              const precedingJsdocComment = findPrecedingJsdocComment(node, jsdocComments);
+							// Re-cast to filtered types
+							const node: MethodDefinition | PropertyDefinition = untypedNode as
+								| MethodDefinition
+								| PropertyDefinition;
+							const nodeKey: IdentifierName = node.key as IdentifierName;
 
-              if (precedingJsdocComment) {
-                const jsdoc = parseJsdocComment(precedingJsdocComment.value);
-                documentedNodes.push({
-                  id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
-                  name: nodeKey.name,
-                  file: id,
-                  node,
-                  jsdoc,
-                });
+							// Find corresponding JSDoc comment
+							const precedingJsdocComment = findPrecedingJsdocComment(
+								node,
+								jsdocComments,
+							);
 
-                // Remove the comment from the list to avoid duplicates
-                const index = jsdocComments.indexOf(precedingJsdocComment);
-                if (index !== -1) {
-                  jsdocComments.splice(index, 1);
-                }
-              }
-            }
-          });
+							if (precedingJsdocComment) {
+								const jsdoc = parseJsdocComment(precedingJsdocComment.value);
+								documentedNodes.push({
+									id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
+									name: nodeKey.name,
+									file: id,
+									node,
+									jsdoc,
+								});
 
-          // Debug
-          /*
+								// Remove the comment from the list to avoid duplicates
+								const index = jsdocComments.indexOf(precedingJsdocComment);
+								if (index !== -1) {
+									jsdocComments.splice(index, 1);
+								}
+							}
+						},
+					});
+
+					// Debug
+					/*
           if (documentedNodes.length > 0) {
             console.log(`minidoc: Found ${documentedNodes.length} documented nodes in ${id}`);
           }
           */
-        } catch (error) {
-          console.warn(`minidoc: Failed to parse ${id}:`, error.message);
-        }
-        return null;
-      },
-    },
+				} catch (error) {
+					console.warn(`minidoc: Failed to parse ${id}:`, error.message);
+				}
+				return null;
+			},
+		},
 
-    generateBundle() {
-      console.log(`minidoc: Generating documentation with ${documentedNodes.length} entries...`);
+		generateBundle() {
+			console.log(
+				`minidoc: Generating documentation with ${documentedNodes.length} entries...`,
+			);
 
-      // Generate markdown
-      const markdown = generateMarkdown(documentedNodes, options);
-      
-      // Ensure output directory exists
-      const outputPath = path.resolve("docs", "index.md");
-      const outputDir = path.dirname(outputPath);
-      
-      try {
-        mkdirSync(outputDir, { recursive: true });
-      } catch (err) {
-        // Directory might already exist
-      }
-      
-      // Write documentation file
-      writeFileSync(outputPath, markdown, 'utf8');
-      console.log(`minidoc: Documentation generated at ${outputPath}`);
-    }
-  };
+			// Generate markdown
+			const markdown = generateMarkdown(documentedNodes, options);
+
+			// Ensure output directory exists
+			const outputPath = path.resolve("docs", "index.md");
+			const outputDir = path.dirname(outputPath);
+
+			try {
+				mkdirSync(outputDir, { recursive: true });
+			} catch (err) {
+				console.error(
+					`minidoc: Failed to create output directory ${outputDir}:`,
+					err,
+				);
+				return;
+			}
+
+			// Write documentation file
+			writeFileSync(outputPath, markdown, "utf8");
+			console.log(`minidoc: Documentation generated at ${outputPath}`);
+		},
+	};
 }

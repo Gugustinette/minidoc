@@ -1,10 +1,10 @@
-import { Options } from './types';
+import type { Options } from "./types";
 
-const DEFAULT_CONFIG: Options = {
-  inputOptions: {
-    input: 'src/index.ts',
-  },
-  outputOptions: {
-    dir: 'minidoc',
-  },
+export const DEFAULT_CONFIG: Options = {
+	inputOptions: {
+		input: "src/index.ts",
+	},
+	outputOptions: {
+		dir: "minidoc",
+	},
 };

@@ -19,9 +19,13 @@
   },
   "scripts": {
     "build": "tsdown",
-    "dev": "tsdown && clear && node ./dist/cli.js ./playground/index.ts"
+    "dev": "tsdown && clear && node ./dist/cli.js ./playground/index.ts",
+    "check": "./node_modules/.bin/biome check ./src",
+    "check:fix": "./node_modules/.bin/biome check --write ./src",
+    "check:fix:unsafe": "./node_modules/.bin/biome check --write --unsafe ./src"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.1.1",
     "@types/node": "^24.0.10",
     "tsdown": "latest"
   },
