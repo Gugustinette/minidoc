@@ -1,5 +1,3 @@
-
-// File: src/utils/findPrecedingJsdocComment.ts
 /**
  * Calculates the sum of two numbers
  * @param a - The first number
@@ -9,14 +7,14 @@
  * const result = add(5, 3);
  * console.log(result); // 8
  */
-function add(a: number, b: number): number {
+export function add(a: number, b: number): number {
   return a + b;
 }
 
 /**
  * A utility class for mathematical operations
  */
-class MathUtils {
+export class MathUtils {
   /**
    * The name of the utility
    */

@@ -1,24 +1,9 @@
 import { Node } from "oxc-parser";
+import { InputOptions, OutputOptions } from "rolldown";
 
-export interface MinidocConfig {
-  /** Input files or directories to process */
-  input: string | string[];
-  /** Output directory for generated docs */
-  outputDir: string;
-  /** File patterns to include */
-  include: string[];
-  /** File patterns to exclude */
-  exclude: string[];
-  /** Custom title for the documentation */
-  title?: string;
-  /** Template directory for custom templates */
-  templateDir?: string;
-  /** Whether to watch for file changes */
-  watch?: boolean;
-  /** Rollup output format */
-  format?: 'es' | 'cjs' | 'umd' | 'iife';
-  /** Custom parser options */
-  parserOptions?: Record<string, any>;
+export interface Options {
+  inputOptions: InputOptions;
+  outputOptions: OutputOptions;
 }
 
 export interface DocumentedItem {

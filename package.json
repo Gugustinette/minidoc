@@ -8,6 +8,9 @@
     "dist"
   ],
   "main": "./dist/index.js",
+  "bin": {
+    "minidoc": "./dist/cli.js"
+  },
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -16,16 +19,16 @@
   },
   "scripts": {
     "build": "tsdown",
-    "dev": "tsdown && clear && node ./dist/cli.js"
+    "dev": "tsdown && clear && node ./dist/cli.js ./playground/index.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
     "tsdown": "latest"
   },
   "dependencies": {
+    "cac": "^6.7.14",
     "oxc-parser": "^0.75.1",
     "oxc-walker": "^0.3.0",
-    "rolldown": "^1.0.0-beta.23",
-    "unconfig": "^7.3.2"
+    "rolldown": "^1.0.0-beta.27"
   }
 }

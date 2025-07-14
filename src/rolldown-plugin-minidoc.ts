@@ -2,8 +2,8 @@ import { IdentifierName, MethodDefinition, parseSync, PropertyDefinition } from 
 import { walk } from 'oxc-walker';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { RolldownPlugin } from 'rolldown';
-import { DocumentedNode } from './types';
+import { RolldownPlugin, TransformResult } from 'rolldown';
+import { DocumentedNode, Options } from './types';
 import { findPrecedingJsdocComment } from './utils/findPrecedingJsdocComment';
 import { parseJsdocComment } from './utils/parseJsdocComment';
 import { generateMarkdown } from './utils/generateMarkdown';
@@ -13,30 +13,18 @@ const documentedNodes: DocumentedNode[] = [];
 /**
  * Main Rolldown plugin function
  */
-export default function jsdocPlugin(options = {}): RolldownPlugin {
-  const {
-    outputFile = 'docs/api.md',
-    include = /\.(js|ts|jsx|tsx)$/,
-    exclude = /node_modules/,
-    title = 'API Documentation',
-    groupByType = true
-  }: any = options;
+export default function minidoc(options = {}): RolldownPlugin {
+  const {}: Options = options;
 
   return {
-    name: 'jsdoc-markdown',
-    
+    name: 'minidoc',
+
     buildStart() {
-      console.log('JSDoc plugin: Starting documentation collection...');
+      console.log('minidoc: Starting documentation collection...');
     },
     
     transform: {
-      filter: {
-        id: {
-          include,
-          exclude
-        }
-      },
-      handler (this, code, id) {
+      handler (this, code: string, id: string): TransformResult {
         try {
           // Parse the source code
           const parseResult = parseSync(id, code, {
@@ -58,7 +46,7 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
             enter: (untypedNode) => {
               // Check if the node is a function, class, or variable declaration
               if (!['MethodDefinition', 'PropertyDefinition'].includes(untypedNode.type)) {
-                return;
+                return null;
               }
 
               // Re-cast to filtered types
@@ -87,24 +75,27 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
             }
           });
 
+          // Debug
+          /*
           if (documentedNodes.length > 0) {
-            console.log(`JSDoc plugin: Found ${documentedNodes.length} documented nodes in ${path.basename(id)}`);
+            console.log(`minidoc: Found ${documentedNodes.length} documented nodes in ${id}`);
           }
+          */
         } catch (error) {
-          console.warn(`JSDoc plugin: Failed to parse ${id}:`, error.message);
+          console.warn(`minidoc: Failed to parse ${id}:`, error.message);
         }
         return null;
       },
     },
-    
+
     generateBundle() {
-      console.log(`JSDoc plugin: Generating documentation with ${documentedNodes.length} entries...`);
+      console.log(`minidoc: Generating documentation with ${documentedNodes.length} entries...`);
 
       // Generate markdown
-      const markdown = generateMarkdown(documentedNodes, { title, groupByType });
+      const markdown = generateMarkdown(documentedNodes, options);
       
       // Ensure output directory exists
-      const outputPath = path.resolve(outputFile);
+      const outputPath = path.resolve("docs", "index.md");
       const outputDir = path.dirname(outputPath);
       
       try {
@@ -115,7 +106,7 @@ export default function jsdocPlugin(options = {}): RolldownPlugin {
       
       // Write documentation file
       writeFileSync(outputPath, markdown, 'utf8');
-      console.log(`JSDoc plugin: Documentation generated at ${outputPath}`);
+      console.log(`minidoc: Documentation generated at ${outputPath}`);
     }
   };
 }
