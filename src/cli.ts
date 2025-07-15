@@ -1,8 +1,7 @@
 import process from "node:process";
 import { cac } from "cac";
-import { type InputOptions, type OutputOptions, rolldown } from "rolldown";
 import { version } from "../package.json";
-import minidoc from "./rolldown-plugin-minidoc";
+import { minidoc } from ".";
 
 const cli = cac("minidoc");
 cli.help().version(version);
@@ -13,18 +12,11 @@ cli
 		allowUnknownOptions: true,
 	})
 	.action(async (input: string[]) => {
-		console.log(`minidoc v${version}`);
-
-		const inputOptions: InputOptions = {
-			input: input,
-			plugins: [minidoc()],
-		};
-
-		const outputOptions: OutputOptions = {};
-
-		const bundle = await rolldown(inputOptions);
-		await bundle.generate(outputOptions);
-		await bundle.close();
+		await minidoc({
+			inputOptions: {
+				input,
+			},
+		});
 	});
 
 async function runCLI(): Promise<void> {

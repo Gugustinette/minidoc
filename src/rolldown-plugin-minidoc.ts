@@ -8,7 +8,7 @@ import {
 } from "oxc-parser";
 import { walk } from "oxc-walker";
 import type { RolldownPlugin, TransformResult } from "rolldown";
-import type { DocumentedNode, Options } from "./types";
+import type { DocumentedNode, ResolvedOptions } from "./types";
 import { findPrecedingJsdocComment } from "./utils/findPrecedingJsdocComment";
 import { generateMarkdown } from "./utils/generateMarkdown";
 import { parseJsdocComment } from "./utils/parseJsdocComment";
@@ -18,10 +18,9 @@ const documentedNodes: DocumentedNode[] = [];
 /**
  * Main Rolldown plugin function
  */
-export default function minidoc(options = {}): RolldownPlugin {
-	// biome-ignore lint/correctness/noEmptyPattern: We allow empty options for flexibility
-	const {}: Options = options;
-
+export default function rolldownPluginMinidoc(
+	options: ResolvedOptions,
+): RolldownPlugin {
 	return {
 		name: "minidoc",
 

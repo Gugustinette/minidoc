@@ -6,6 +6,11 @@ export interface Options {
 	outputOptions?: OutputOptions;
 }
 
+export interface ResolvedOptions {
+	inputOptions: InputOptions;
+	outputOptions: OutputOptions;
+}
+
 export interface DocumentedItem {
 	name: string;
 	type: "function" | "class" | "variable" | "method" | "constructor";
