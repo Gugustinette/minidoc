@@ -1,4 +1,4 @@
-import type { Node } from "oxc-parser";
+import type { Class, MethodDefinition, PropertyDefinition } from "oxc-parser";
 import type { InputOptions, OutputOptions } from "rolldown";
 
 export interface Options {
@@ -11,23 +11,13 @@ export interface ResolvedOptions {
 	outputOptions: OutputOptions;
 }
 
-export interface DocumentedItem {
-	name: string;
-	type: "function" | "class" | "variable" | "method" | "constructor";
-	description: string;
-	tags: string[];
-	filePath: string;
-	source: string;
-	line: number;
-}
-
-export interface CliOptions {
-	config?: string;
-	input?: string;
-	output?: string;
-	watch?: boolean;
-	verbose?: boolean;
-}
+export type DocumentableNode = MethodDefinition | PropertyDefinition | Class;
+export const DOCUMENTABLE_NODE_TYPES = [
+	"MethodDefinition",
+	"PropertyDefinition",
+	"ClassDeclaration",
+	"ClassExpression",
+] as const;
 
 export interface Jsdoc {
 	description: string;
@@ -38,6 +28,6 @@ export interface DocumentedNode {
 	id: string;
 	name: string;
 	file: string;
-	node: Node;
+	astNode: DocumentableNode;
 	jsdoc: Jsdoc;
 }

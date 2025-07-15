@@ -1,16 +1,17 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import {
-	type IdentifierName,
-	type MethodDefinition,
-	type PropertyDefinition,
-	parseSync,
-} from "oxc-parser";
+import { parseSync } from "oxc-parser";
 import { walk } from "oxc-walker";
 import type { RolldownPlugin, TransformResult } from "rolldown";
-import type { DocumentedNode, ResolvedOptions } from "./types";
+import {
+	DOCUMENTABLE_NODE_TYPES,
+	type DocumentableNode,
+	type DocumentedNode,
+	type ResolvedOptions,
+} from "./types";
 import { findPrecedingJsdocComment } from "./utils/findPrecedingJsdocComment";
 import { generateMarkdown } from "./utils/generateMarkdown";
+import { getNodeName } from "./utils/getNodeName";
 import { parseJsdocComment } from "./utils/parseJsdocComment";
 
 const documentedNodes: DocumentedNode[] = [];
@@ -49,19 +50,14 @@ export default function rolldownPluginMinidoc(
 					walk(parseResult.program, {
 						enter: (untypedNode) => {
 							// Check if the node is a function, class, or variable declaration
-							if (
-								!["MethodDefinition", "PropertyDefinition"].includes(
-									untypedNode.type,
-								)
-							) {
+							// biome-ignore lint/suspicious/noExplicitAny: Allow any type for node
+							if (!DOCUMENTABLE_NODE_TYPES.includes(untypedNode.type as any)) {
 								return null;
 							}
 
 							// Re-cast to filtered types
-							const node: MethodDefinition | PropertyDefinition = untypedNode as
-								| MethodDefinition
-								| PropertyDefinition;
-							const nodeKey: IdentifierName = node.key as IdentifierName;
+							const node: DocumentableNode = untypedNode as DocumentableNode;
+							const nodeName: string = getNodeName(node);
 
 							// Find corresponding JSDoc comment
 							const precedingJsdocComment = findPrecedingJsdocComment(
@@ -69,13 +65,14 @@ export default function rolldownPluginMinidoc(
 								jsdocComments,
 							);
 
+							// If a JSDoc comment is found, parse it and create a documented node
 							if (precedingJsdocComment) {
 								const jsdoc = parseJsdocComment(precedingJsdocComment.value);
 								documentedNodes.push({
-									id: `${id}:${nodeKey.name}:${node.start}:${node.end}`,
-									name: nodeKey.name,
+									id: `${id}:${nodeName}:${node.start}:${node.end}`,
+									name: nodeName,
 									file: id,
-									node,
+									astNode: node,
 									jsdoc,
 								});
 

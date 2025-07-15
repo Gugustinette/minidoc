@@ -19,16 +19,17 @@ export function generateMarkdown(
 	// Group by type if requested
 	if (groupByType) {
 		const grouped = documentedNodes.reduce((acc, entry) => {
-			const type = entry.node.type;
+			const type = entry.astNode.type;
 			if (!acc[type]) acc[type] = [];
 			acc[type].push(entry);
 			return acc;
 		}, {});
 
 		const typeHeaders = {
+			MethodDefinition: "## Functions",
+			PropertyDefinition: "## Properties",
 			ClassDeclaration: "## Classes",
-			FunctionDeclaration: "## Functions",
-			FunctionExpression: "## Functions",
+			ClassExpression: "## Classes",
 		};
 
 		for (const type of Object.keys(grouped)) {

@@ -1,16 +1,24 @@
 # Title
 
-## PropertyDefinitions
+## Classes
 
-### PropertyDefinition - name
+### MathUtils
+
+*File: [MathUtils.ts](/Users/augustinmercier/Desktop/minidoc/playground/MathUtils.ts)*
+
+A utility class for mathematical operations
+
+## Properties
+
+### name
 
 *File: [MathUtils.ts](/Users/augustinmercier/Desktop/minidoc/playground/MathUtils.ts)*
 
 The name of the utility
 
-## MethodDefinitions
+## Functions
 
-### MethodDefinition - constructor
+### constructor
 
 *File: [MathUtils.ts](/Users/augustinmercier/Desktop/minidoc/playground/MathUtils.ts)*
 
@@ -22,7 +30,7 @@ Creates a new MathUtils instance
 #### Parameters:
 - name - - The name of the utility
 
-### MethodDefinition - multiply
+### multiply
 
 *File: [MathUtils.ts](/Users/augustinmercier/Desktop/minidoc/playground/MathUtils.ts)*
 
