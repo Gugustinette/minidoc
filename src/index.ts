@@ -1,5 +1,4 @@
 import { rolldown } from "rolldown";
-import { version } from "../package.json";
 import { resolveOptions } from "./config";
 import rolldownPluginMinidoc from "./rolldown-plugin-minidoc";
 import type { Options } from "./types";
@@ -10,8 +9,6 @@ import type { Options } from "./types";
  * @returns A promise that resolves when the documentation generation is complete.
  */
 export async function minidoc(options: Options): Promise<void> {
-	console.log(`minidoc v${version}`);
-
 	// Resolve options
 	const resolvedOptions = resolveOptions(options);
 

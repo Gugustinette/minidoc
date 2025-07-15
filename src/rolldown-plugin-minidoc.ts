@@ -2,7 +2,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseSync } from "oxc-parser";
 import { walk } from "oxc-walker";
-import type { RolldownPlugin, TransformResult } from "rolldown";
+import type {
+	PluginContext,
+	RolldownPlugin,
+	TransformPluginContext,
+	TransformResult,
+} from "rolldown";
+import { version } from "../package.json";
 import {
 	DOCUMENTABLE_NODE_TYPES,
 	type DocumentableNode,
@@ -25,12 +31,17 @@ export default function rolldownPluginMinidoc(
 	return {
 		name: "minidoc",
 
-		buildStart() {
-			console.log("minidoc: Starting documentation collection...");
+		buildStart(this: PluginContext): void {
+			this.debug(`minidoc v${version}`);
+			this.info("Starting documentation collection...");
 		},
 
 		transform: {
-			handler(this, code: string, id: string): TransformResult {
+			handler(
+				this: TransformPluginContext,
+				code: string,
+				id: string,
+			): TransformResult {
 				try {
 					// Parse the source code
 					const parseResult = parseSync(id, code, {
@@ -85,22 +96,21 @@ export default function rolldownPluginMinidoc(
 						},
 					});
 
-					// Debug
-					/*
-          if (documentedNodes.length > 0) {
-            console.log(`minidoc: Found ${documentedNodes.length} documented nodes in ${id}`);
-          }
-          */
+					if (documentedNodes.length > 0) {
+						this.debug(
+							`minidoc: Found ${documentedNodes.length} documented nodes in ${id}`,
+						);
+					}
 				} catch (error) {
-					console.warn(`minidoc: Failed to parse ${id}:`, error.message);
+					this.warn(`minidoc: Failed to parse ${id}:`, error.message);
 				}
 				return null;
 			},
 		},
 
-		generateBundle() {
-			console.log(
-				`minidoc: Generating documentation with ${documentedNodes.length} entries...`,
+		generateBundle(this: PluginContext): void {
+			this.info(
+				`Generating documentation with ${documentedNodes.length} entries...`,
 			);
 
 			// Generate markdown
@@ -113,16 +123,15 @@ export default function rolldownPluginMinidoc(
 			try {
 				mkdirSync(outputDir, { recursive: true });
 			} catch (err) {
-				console.error(
-					`minidoc: Failed to create output directory ${outputDir}:`,
-					err,
+				this.error(
+					`Failed to create output directory ${outputDir}: ${err.message}`,
 				);
 				return;
 			}
 
 			// Write documentation file
 			writeFileSync(outputPath, markdown, "utf8");
-			console.log(`minidoc: Documentation generated at ${outputPath}`);
+			this.info(`minidoc: Documentation generated at ${outputPath}`);
 		},
 	};
 }
